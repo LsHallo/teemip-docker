@@ -1,0 +1,39 @@
+services:
+  teemip:
+    build:
+      context: teemip
+      dockerfile: Dockerfile
+    container_name: teemip
+    restart: unless-stopped
+    # Share TeemIP resources with nginx container
+    volumes:
+      - type: volume
+        source: html
+        target: /var/www/html
+        volume:
+          # Allow files from teemip container to spill into volume
+          nocopy: false
+
+  teemip-nginx:
+    build:
+      context: nginx
+      dockerfile: Dockerfile
+    container_name: teemip-nginx
+    restart: unless-stopped
+    volumes:
+      - html:/var/www/html:ro
+    ports:
+      - "80:80"
+
+  teemip-db:
+    image: mariadb:lts
+    container_name: teemip-db
+    restart: unless-stopped
+    environment:
+      - MARIADB_ROOT_PASSWORD=teemip
+      - MARIADB_DATABASE=teemip
+      - MARIADB_USER=teemip
+      - MARIADB_PASSWORD=teemip
+
+volumes:
+  html:
